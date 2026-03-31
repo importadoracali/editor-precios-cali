@@ -964,31 +964,43 @@ const FACTOR_IVA = 1.09;
 function cargarProductos(lista) {
     const contenedor = document.getElementById('listaProductos');
     contenedor.innerHTML = "";
-    
     lista.forEach(p => {
-        const row = document.createElement('tr');
-        row.className = 'product-row';
-        row.setAttribute('data-search', `${p.codCali} ${p.desc} ${p.marca}`.toLowerCase());
+        const pFact = (p.pUnitario * 1.09).toFixed(1);
+        const card = document.createElement('div');
+        card.className = 'card';
         
-        row.innerHTML = `
-            <td><img src="${p.img}" class="thumb-img" onclick="abrirImagen('${p.img}')" onerror="this.src='https://via.placeholder.com/50'"></td>
-            <td><span class="col-code">${p.codCali}</span><br><span class="col-brand">${p.marca}</span></td>
-            <td style="font-size: 0.85rem; font-weight:600;">${p.desc}</td>
-            <td>
-                <span class="price-label">Efectivo actual</span>
-                <span style="font-weight:700;">Bs. ${p.pUnitario}</span>
-            </td>
-            <td style="background: #f9f9f9; text-align: center;">
-                <span class="price-label">Ingresar Nuevo</span>
-                <input type="number" class="input-precio" placeholder="0.00" 
-                       oninput="calcularNuevoFacturado(this, ${p.id})">
-                <div style="margin-top: 5px;">
-                    <span class="price-label">Con Factura (Est.)</span>
-                    <span class="val-fact-new" id="fact-res-${p.id}">Bs. 0.00</span>
+        // CORRECCIÓN AQUÍ: Se añade p.otrosCod al atributo de búsqueda
+        const textoBusqueda = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod}`.toLowerCase();
+        card.setAttribute('data-search', textoBusqueda);
+        
+        card.innerHTML = `
+            <div class="card-identity">
+                <span class="marca-badge">${p.marca}</span>
+                <span class="desc-text">${p.desc}</span>
+                <span class="cod-text">${p.codCali}</span>
+            </div>
+
+            <div class="cruces-box">
+                <span class="label-p">otros codigos</span>
+                <div class="otros-codigos">${p.otrosCod}</div>
+            </div>
+
+            <div class="precios-container">
+                <div>
+                    <span class="label-p">Facturado</span>
+                    <span class="val-fact">Bs. ${pFact}</span>
                 </div>
-            </td>
+                <div style="text-align: right;">
+                    <span class="label-p">Efectivo</span>
+                    <span class="val-sin"><small style="font-size:1.2rem">Bs.</small>${p.pUnitario.toLocaleString('es-BO')}</span>
+                </div>
+            </div>
+
+            <div class="img-container" onclick="abrirImagen('${p.img}')">
+                <img src="${p.img}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Logo+Cali'">
+            </div>
         `;
-        contenedor.appendChild(row);
+        contenedor.appendChild(card);
     });
 }
 
