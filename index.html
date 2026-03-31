@@ -3,93 +3,86 @@
 <head>    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Importadora Cali | Editor de Precios</title>
+    <title>Importadora Cali | Editor de Precios Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --rojo-neon: #ff002b;
             --negro-mate: #1a1a1a;
             --blanco-fondo: #f4f7f6;
-            --dorado-premium: #d4af37;
-            --verde-edicion: #28a745;
+            --verde-excel: #1D6F42;
         }
 
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--blanco-fondo); margin: 0; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--blanco-fondo); margin: 0; padding-bottom: 50px; }
 
         header {
             background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
-            color: white; padding: 25px; text-align: center;
+            color: white; padding: 20px; text-align: center;
             border-bottom: 4px solid var(--rojo-neon);
-            
         }
-        
-        
         header h1 { font-family: 'Bebas Neue', cursive; font-size: 3rem; margin: 0; letter-spacing: 3px; }
 
-        .search-wrapper { max-width: 900px; margin: -25px auto 30px; padding: 0 20px; }
+        .search-wrapper { max-width: 900px; margin: -25px auto 20px; padding: 0 20px; }
         .search-box { 
             background: white; display: flex; align-items: center; padding: 5px 25px; 
             border-radius: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        #searchInput { flex: 1; padding: 12px; border: none; outline: none; font-size: 1rem; }
+        #searchInput { flex: 1; padding: 12px; border: none; outline: none; font-size: 1.1rem; font-weight: 600; }
 
-        .table-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; overflow-x: auto; }
+        .btn-excel {
+            background: var(--verde-excel); color: white; border: none; padding: 10px 20px; 
+            border-radius: 5px; font-family: 'Oswald'; cursor: pointer; font-size: 1rem;
+            transition: 0.3s; margin-bottom: 15px;
+        }
+        .btn-excel:hover { background: #155231; transform: scale(1.05); }
 
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
+        .table-container { max-width: 1400px; margin: 0 auto; padding: 0 15px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
         th { background-color: var(--negro-mate); color: white; text-transform: uppercase; font-size: 0.75rem; padding: 15px; text-align: left; }
 
-        tr.product-row { border-bottom: 1px solid #eee; transition: 0.2s; }
-        tr.product-row:hover { background-color: #fff9f9; }
+        tr.product-row { border-bottom: 1px solid #ddd; transition: 0.2s; }
+        tr.product-row:hover { background-color: #fffafa; }
+        td { padding: 15px; vertical-align: middle; }
 
-        td { padding: 12px 15px; vertical-align: middle; }
-
-        .thumb-img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; cursor: zoom-in; }
-        .col-code { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; color: #333; }
-        .col-brand { color: var(--rojo-neon); font-weight: 800; font-size: 0.8rem; }
-        
-        /* Estilos de los inputs de precio */
-        .input-precio {
-            width: 90px;
-            padding: 8px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.1rem;
-            color: var(--verde-edicion);
-            text-align: right;
-            outline: none;
-            transition: border-color 0.3s;
+        /* Diseño de celdas grandes */
+        .thumb-img { 
+            width: 90px; height: 90px; object-fit: contain; 
+            background: white; border: 1px solid #eee; border-radius: 8px; cursor: zoom-in; 
         }
-        .input-precio:focus { border-color: var(--rojo-neon); background: #fffefe; }
+        .col-brand { color: var(--rojo-neon); font-weight: 800; font-size: 1.1rem; text-transform: uppercase; display: block; }
+        .col-code { font-family: 'Bebas Neue', cursive; font-size: 2rem; color: #000; line-height: 1; display: block; }
+        .otros-cod { font-size: 0.85rem; color: #666; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; font-family: monospace; }
+        .desc-text { font-size: 1rem; font-weight: 700; color: #333; }
 
-        .price-label { font-size: 0.65rem; color: #999; display: block; text-transform: uppercase; }
-        .val-fact-new { font-weight: bold; color: #666; font-size: 0.9rem; }
+        /* Inputs */
+        .input-precio {
+            width: 110px; padding: 10px; border: 2px solid #ddd; border-radius: 6px;
+            font-family: 'Oswald', sans-serif; font-size: 1.4rem; color: #28a745;
+            text-align: right; outline: none;
+        }
+        .input-precio:focus { border-color: var(--rojo-neon); }
+        .price-label { font-size: 0.65rem; color: #999; display: block; text-transform: uppercase; font-weight: 700; }
+        .val-fact-new { font-weight: bold; color: #444; font-size: 1.1rem; display: block; margin-top: 4px; }
 
         #imageModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
-        #modalImg { max-width: 85%; max-height: 85%; border: 2px solid white; }
+        #modalImg { max-width: 85%; max-height: 85%; border: 3px solid white; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>IMPORTADORA CALI</h1>
-    <p>EDITOR DE PRECIOS RÁPIDO</p>
-        
-<div style="text-align: center; margin-bottom: 20px;">
-    <button onclick="exportarExcel()" style="background: #1D6F42; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-family: 'Oswald'; cursor: pointer; font-size: 1rem;">
-        <i class="fa-solid fa-file-excel"></i> DESCARGAR EXCEL DE PRECIOS
+    <button class="btn-excel" onclick="exportarExcel()">
+        <i class="fa-solid fa-file-excel"></i> DESCARGAR REPORTE EXCEL
     </button>
-</div>
-
-<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 </header>
 
 <div class="search-wrapper">
     <div class="search-box">
-        <i class="fa-solid fa-magnifying-glass" style="color: var(--rojo-neon);"></i>
-        <input type="text" id="searchInput" placeholder="Buscar producto..." onkeyup="filtrar()">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--rojo-neon); font-size: 1.3rem;"></i>
+        <input type="text" id="searchInput" placeholder="Busca por Marca, Código Cali, Cruces o Descripción..." onkeyup="filtrar()">
     </div>
 </div>
 
@@ -97,11 +90,11 @@
     <table>
         <thead>
             <tr>
-                <th>Foto</th>
-                <th>Código / Marca</th>
+                <th>Imagen</th>
+                <th>Identificación del Producto</th>
                 <th>Descripción</th>
-                <th style="width: 150px;">Precio Actual</th>
-                <th style="width: 180px; background: #222;">Nuevo Precio (Efectivo)</th>
+                <th>Efectivo Actual</th>
+                <th style="background: #222; text-align: center; color: white;">Editar Nuevo Precio</th>
             </tr>
         </thead>
         <tbody id="listaProductos"></tbody>
@@ -113,8 +106,9 @@
 </div>
 
 <script>
-const productos = [
-    { codCali: "B4913-C", otrosCod: "W01-M58-8098 / 4913N P02 / 1R14-753", desc: "GLOBO TRACTOR SCANIA", marca: "BREITER", pUnitario: 1250.00, img: "https://www.airspringsbook.com/storage/metal-pistonlu-korukler/374913-10c-komple.jpg" },
+
+const productosRaw = [
+ { codCali: "B4913-C", otrosCod: "W01-M58-8098 / 4913N P02 / 1R14-753", desc: "GLOBO TRACTOR SCANIA", marca: "BREITER", pUnitario: 1250.00, img: "https://www.airspringsbook.com/storage/metal-pistonlu-korukler/374913-10c-komple.jpg" },
  { codCali: "E3110", otrosCod: "3110 / 1152 / SP558829 / 1K8829CY / 9648", desc: "GLOBO TRACTO AMERICANO HOLLA PLASTICO", marca: "BRASIL", pUnitario: 1070.00, img: "https://th.bing.com/th/id/R.f1c2a2b3ad49db9eb2d5ad9f0b2541e8?rik=AOk%2fcl%2f9m5zptQ&riu=http%3a%2f%2fcdn.shopify.com%2fs%2ffiles%2f1%2f0631%2f2725%2f7310%2fproducts%2frolling-lobe-air-spring-8829-bag-suspension-463_grande.webp%3fv%3d1676502455&ehk=Bmfo3TdoVqP0G%2b0Gy7AR84FVaxsz14RdTNkDtxHa%2fsc%3d&risl=&pid=ImgRaw&r=0.jpg" },
     { codCali: "B881-C", otrosCod: "W01-M58-8602 / 4881NP02 / 1R14-757", desc: "GLOBO CHATA 12 PERNOS OLLA DE METAL", marca: "BREITER", pUnitario: 1200.00, img: "https://www.airspringsbook.com/storage/metal-pistonlu-korukler/37881-c-komple.jpg" },
     { codCali: "B881-CPL", otrosCod: "W01-M58-8602 / 4881NP02 / 1R14-757", desc: "GLOBO CHATA 12 PERNOS OLLA DE PLASTICO", marca: "BREITER", pUnitario: 1150.00, img: "https://www.airspringsbook.com/storage/metal-pistonlu-korukler/37881-c-komple.jpg" },
@@ -910,7 +904,7 @@ const productos = [
      { codCali: "626639AM", otrosCod: "SERVO,KS+", desc: "SERVO FH", marca: "MADETOP", pUnitario: 1800.00, img: "https://tgfautomotive.com.br/658713-medium_default/servo_embreagem_volvo_b7r-_b10m-_b12-_b58-_vm210_edc_1995_1671953.jpg" },
    { codCali: "1000129485AM", otrosCod: "SERVO,KS+", desc: "SERVO", marca: "MADETOP", pUnitario: 2030.00, img: "https://gztruck.com/wp-content/uploads/2022/04/1000129485AM-6-510x510.jpg" },
     { codCali: "7421204549", otrosCod: "SERVO,KS+", desc: "SERVO", marca: "MADETOP", pUnitario: 2030.00, img: "https://lpmuk.com/wp-content/uploads/2020/08/6_43067_M-465x465.jpg" },
-      { codCali: "F-5001865724", otrosCod: "F-5001865723", desc: "PRE-FILTRO DE AIRE RENAULT", marca: "RENAULT", pUnitario: 250.00, img: "https://s.alicdn.com/@sc04/kf/H70e8831BVTrB47erypG3tevi1U9Fv6BbNUBEiuiX.png?avif=close&webp=close" },
+      { codCali: "F-5001865724", otrosCod: "F-5001865723", desc: "PRE-FILTRO DE AIRE RENAULT", marca: "RENAULT", pUnitario: 250.00, img: "https://s.alicdn.com/@sc04/kf/H70e8831BSN7gxmPWYCAKJgA9aH4yNuERpTvs4uiX.png?avif=close&webp=close" },
      { codCali: "21115501", otrosCod: "1665898", desc: "PRE-FILTRO DE AIRE FH12", marca: "RENAULT", pUnitario: 250.00, img: "https://i.ibb.co/DHbGRzvV/Imagen2.png" },
     { codCali: "AS5813", otrosCod: "IV6364SA,SP55813", desc: "GLOBO SUELTO ", marca: "ETP", pUnitario: 650.00, img: "https://www.likaencoder.com/wp-content/uploads/2021/03/ck59-s.jpg" },
      { codCali: "AS8468-CP", otrosCod: "IV8468,SP558468-KP", desc: "GLOBO SUELTO ", marca: "ETP", pUnitario: 890.00, img: "https://firsttruckparts.com/cdn/shop/products/s-l1600-2022-02-16T232721.154_693a6861-4f75-4f5f-9c2b-b923f08521b5.jpg?v=1706956447" },
@@ -956,64 +950,56 @@ const productos = [
 { codCali: "21693755", otrosCod: "21693755", desc: "FILTRO DE AIRE RENAULT", marca: "VOLVO", pUnitario: 900, img: "https://www.partspowergenset.com/Content/uploads/2019100413/201912101758116411074.JPG" },
 { codCali: "47496", otrosCod: "47496", desc: "AMORTIGUADOR DEL CABALLETE TRASERO PERNO A PERNO F12-F10-F7", marca: "COFAP", pUnitario: 750, img: "https://pitstop.vtexassets.com/arquivos/ids/263112-800-auto?v=638166420593170000&width=800&height=auto&aspect=true.JPG" },
 
+];
 
-   ];
-
+const productos = productosRaw.map((p, i) => ({ ...p, id: i }));
 const FACTOR_IVA = 1.09;
 
 function cargarProductos(lista) {
     const contenedor = document.getElementById('listaProductos');
     contenedor.innerHTML = "";
+    
     lista.forEach(p => {
-        const pFact = (p.pUnitario * 1.09).toFixed(1);
-        const card = document.createElement('div');
-        card.className = 'card';
+        const row = document.createElement('tr');
+        row.className = 'product-row';
         
-        // CORRECCIÓN AQUÍ: Se añade p.otrosCod al atributo de búsqueda
-        const textoBusqueda = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod}`.toLowerCase();
-        card.setAttribute('data-search', textoBusqueda);
+        // MOTOR DE BÚSQUEDA TOTAL (Busca en todo)
+        const motorBusqueda = `${p.codCali} ${p.marca} ${p.desc} ${p.otrosCod}`.toLowerCase();
+        row.setAttribute('data-search', motorBusqueda);
         
-        card.innerHTML = `
-            <div class="card-identity">
-                <span class="marca-badge">${p.marca}</span>
-                <span class="desc-text">${p.desc}</span>
-                <span class="cod-text">${p.codCali}</span>
-            </div>
-
-            <div class="cruces-box">
-                <span class="label-p">otros codigos</span>
-                <div class="otros-codigos">${p.otrosCod}</div>
-            </div>
-
-            <div class="precios-container">
-                <div>
-                    <span class="label-p">Facturado</span>
-                    <span class="val-fact">Bs. ${pFact}</span>
-                </div>
-                <div style="text-align: right;">
-                    <span class="label-p">Efectivo</span>
-                    <span class="val-sin"><small style="font-size:1.2rem">Bs.</small>${p.pUnitario.toLocaleString('es-BO')}</span>
-                </div>
-            </div>
-
-            <div class="img-container" onclick="abrirImagen('${p.img}')">
-                <img src="${p.img}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Logo+Cali'">
-            </div>
+        row.innerHTML = `
+            <td><img src="${p.img}" class="thumb-img" onclick="abrirImagen('${p.img}')" onerror="this.src='https://via.placeholder.com/90?text=SIN+FOTO'"></td>
+            <td style="min-width: 300px;">
+                <span class="col-brand">${p.marca}</span>
+                <span class="col-code">${p.codCali}</span>
+                <span class="otros-cod">REF: ${p.otrosCod}</span>
+            </td>
+            <td><span class="desc-text">${p.desc}</span></td>
+            <td>
+                <span class="price-label">Precio Hoy</span>
+                <span style="font-weight:800; font-size: 1.3rem;">Bs ${p.pUnitario}</span>
+            </td>
+            <td style="background: #f4f4f4; text-align: center; border-left: 3px solid #ddd;">
+                <span class="price-label" style="color:#000">NUEVO EFECTIVO</span>
+                <input type="number" class="input-precio" placeholder="0" 
+                       oninput="calcularNuevoFacturado(this, ${p.id})">
+                <span class="price-label" style="margin-top:8px">CON FACTURA (EST.)</span>
+                <span class="val-fact-new" id="fact-res-${p.id}">Bs 0.00</span>
+            </td>
         `;
-        contenedor.appendChild(card);
+        contenedor.appendChild(row);
     });
 }
 
 function calcularNuevoFacturado(input, id) {
     const nuevoPrecio = parseFloat(input.value) || 0;
     const resultadoFactura = (nuevoPrecio * FACTOR_IVA).toFixed(2);
-    document.getElementById(`fact-res-${id}`).innerText = `Bs. ${resultadoFactura}`;
+    document.getElementById(`fact-res-${id}`).innerText = `Bs ${resultadoFactura}`;
 }
 
 function filtrar() {
     const term = document.getElementById('searchInput').value.toLowerCase();
     const filas = document.querySelectorAll('.product-row');
-    
     filas.forEach(fila => {
         const contenido = fila.getAttribute('data-search');
         fila.style.display = contenido.includes(term) ? "" : "none";
@@ -1022,59 +1008,42 @@ function filtrar() {
 
 function abrirImagen(url) {
     const modal = document.getElementById('imageModal');
-    const img = document.getElementById('modalImg');
-    img.src = url;
+    document.getElementById('modalImg').src = url;
     modal.style.display = 'flex';
 }
 
-// Inicializar la tabla al cargar
-window.onload = () => cargarProductos(productos);
-    function exportarExcel() {
+function exportarExcel() {
     const dataParaExcel = [];
-    
-    // Obtenemos todas las filas de la tabla
     const filas = document.querySelectorAll('.product-row');
     
     filas.forEach(fila => {
         const codigo = fila.querySelector('.col-code').innerText;
         const marca = fila.querySelector('.col-brand').innerText;
-        const descripcion = fila.querySelector('td:nth-child(3)').innerText;
-        const precioActual = fila.querySelector('td:nth-child(4) span:last-child').innerText;
-        
-        // Obtenemos el valor que el usuario escribió en el input
         const inputNuevo = fila.querySelector('.input-precio');
         const nuevoPrecio = inputNuevo.value || "0";
         
-        // Calculamos el facturado
-        const facturado = (parseFloat(nuevoPrecio) * FACTOR_IVA).toFixed(2);
-
-        // Solo agregamos al Excel si el usuario ingresó un precio nuevo
         if (parseFloat(nuevoPrecio) > 0) {
             dataParaExcel.push({
                 "CÓDIGO": codigo,
                 "MARCA": marca,
-                "DESCRIPCIÓN": descripcion,
-                "PRECIO ANTERIOR": precioActual,
-                "NUEVO PRECIO (EFECTIVO)": "Bs. " + nuevoPrecio,
-                "NUEVO PRECIO (FACTURADO)": "Bs. " + facturado
+                "NUEVO PRECIO (EFECTIVO)": "Bs " + nuevoPrecio,
+                "NUEVO PRECIO (FACTURA)": "Bs " + (parseFloat(nuevoPrecio) * FACTOR_IVA).toFixed(2)
             });
         }
     });
 
     if (dataParaExcel.length === 0) {
-        alert("Por favor, ingresa al menos un precio nuevo para exportar.");
+        alert("Por favor, ingresa al menos un precio nuevo.");
         return;
     }
 
-    // Crear el libro de Excel
     const hoja = XLSX.utils.json_to_sheet(dataParaExcel);
     const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, "Nuevos Precios");
-
-    // Descargar el archivo
-    XLSX.writeFile(libro, "Lista_Precios_Importadora_Cali.xlsx");
+    XLSX.utils.book_append_sheet(libro, hoja, "Cambio de Precios");
+    XLSX.writeFile(libro, "Actualizacion_Precios_Cali.xlsx");
 }
-</script>
 
+window.onload = () => cargarProductos(productos);
+</script>
 </body>
 </html>
