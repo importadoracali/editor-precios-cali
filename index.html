@@ -202,61 +202,58 @@
             <span class="close-btn" onclick="cerrarImagen(event)">&times;</span>
             <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
-
-    <script>
-            // URL de tu Apps Script (Verificada)
+<script>
+            // URL de tu Apps Script
             const API_WEB_URL = 'https://script.google.com/macros/s/AKfycbw50sxl6xw-46zQ6BasPDLHltXDi1-AF_RWR2N3rGhkyMlcqTLlymYMgC-DBXi_foM/exec';
             
             let productos = [];
             let filtroMarcaActual = "";
 
-            // Intento de carga principal (JSON)
+            // Función principal de conexión
             async function cargarDatosDesdeSheets() {
                 try {
+                    // Intentamos conexión limpia por fetch siguiendo las redirecciones de Google
                     const respuesta = await fetch(API_WEB_URL, {
                         method: 'GET',
+                        mode: 'cors',
                         redirect: 'follow'
                     });
                     
-                    if (!respuesta.ok) throw new Error("Error de respuesta");
-                    
-                    const datosJson = await respuesta.json();
-                    procesarYMostrar(datosJson);
+                    if (respuesta.ok) {
+                        const datosJson = await respuesta.json();
+                        if (datosJson && datosJson.length > 0) {
+                            procesarYMostrar(datosJson);
+                            return;
+                        }
+                    }
+                    throw new Error("Forzando Plan B por seguridad");
                     
                 } catch (error) {
-                    console.warn("Conexión normal bloqueada por CORS. Activando Plan B (JSONP)...");
-                    document.getElementById("listaProductos").innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                            Conectando de forma alternativa con Google Sheets...
-                        </div>`;
+                    console.log("Activando Plan B (JSONP) de forma segura...");
                     
-                    // Dispara el Plan B si el navegador bloquea el fetch normal
-                    cargarDatosPlanB_JSONP();
+                    // Eliminamos scripts JSONP previos si existen
+                    const viejoScript = document.getElementById('jsonp-engine');
+                    if (viejoScript) viejoScript.remove();
+
+                    // Creamos el puente que salta el bloqueo de CORS al 100%
+                    const script = document.createElement('script');
+                    script.id = 'jsonp-engine';
+                    // El parámetro callback le avisa a Google que use la función recibirDatos
+                    script.src = API_WEB_URL + '?callback=recibirDatos&nocache=' + new Date().getTime();
+                    
+                    script.onerror = function() {
+                        document.getElementById("listaProductos").innerHTML = `
+                            <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                                Error de enlace. Asegúrate de que la macro de Google Sheets esté guardada como 'Nueva versión'.
+                            </div>`;
+                    };
+                    
+                    document.body.appendChild(script);
                 }
             }
 
-            // Plan B: Llama al script usando una etiqueta dinámica (Evita el bloqueo CORS)
-            function cargarDatosPlanB_JSONP() {
-                // Eliminamos cualquier script viejo de intentos anteriores
-                const scriptViejo = document.getElementById('jsonp-script');
-                if (scriptViejo) scriptViejo.remove();
-
-                const script = document.createElement('script');
-                script.id = 'jsonp-script';
-                script.src = API_WEB_URL + '?callback=recibirDatosJSONP&t=' + new Date().getTime(); // El parámetro 't' evita que el navegador use caché vieja
-                
-                script.onerror = function() {
-                    document.getElementById("listaProductos").innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                            Error crítico de conexión. Asegúrate de haber guardado la macro en Google Sheets como "Nueva versión".
-                        </div>`;
-                };
-                
-                document.body.appendChild(script);
-            }
-
-            // Esta función procesa los datos tanto del método normal como del Plan B
-            function recibirDatosJSONP(datosJson) {
+            // Esta función procesa los datos de ambos métodos sin romperse
+            function recibirDatos(datosJson) {
                 procesarYMostrar(datosJson);
             }
 
@@ -264,7 +261,7 @@
                 if (!datosJson || datosJson.length === 0) {
                     document.getElementById("listaProductos").innerHTML = `
                         <div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">
-                            La hoja de cálculo está vacía o no tiene el formato correcto.
+                            No se encontraron registros en tu hoja de cálculo.
                         </div>`;
                     return;
                 }
@@ -334,7 +331,7 @@
                                 <div class="title-row">
                                     <span class="product-title">${p.desc}</span>
                                     ${btnHtml}
-                                </div>
+                                }
                                 <span class="product-subcodes">${p.otrosCod || "---"}</span>
                             </div>
                             <div class="col-brand">
