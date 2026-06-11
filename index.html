@@ -189,13 +189,13 @@
                 <div style="text-align: right;">Precio</div>
             </div>
             <div class="list-container" id="listaProductos">
-                <div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">Cargando catálogo desde Google Sheets...</div>
+                <div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">Cargando catálogo en tiempo real...</div>
             </div>
         </div>
 
         <div class="catalog-footer">
             <div id="productCount">Mostrando 0 productos</div>
-            <div class="status-offline"><i class="fa-solid fa-circle-check"></i> Conectado a Google Sheets</div>
+            <div class="status-offline"><i class="fa-solid fa-circle-check"></i> Enlazado mediante Apps Script</div>
         </div>
 
         <div id="imageModal" onclick="cerrarImagen(event)">
@@ -203,56 +203,38 @@
             <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
 
-  <script>
-            // ✅ Tu ID verificado de la hoja
-            const SPREADSHEET_ID = '1KBdQGFX6r2z58biPRi56Wrmq-O6mgQbB3XrORhUoHyo';
-            const SHEET_NAME = 'Hoja1'; 
+        <script>
+            // ✅ Tu URL de Google Apps Script vinculada de forma segura
+            const API_WEB_URL = 'https://script.google.com/macros/s/AKfycbw50sxl6xw-46zQ6BasPDLHltXDi1-AF_RWR2N3rGhkyMlcqTLlymYMgC-DBXi_foM/exec';
             
             let productos = [];
             let filtroMarcaActual = "";
 
-            // Función utilizando un proxy/puente JSON abierto para saltar bloqueos de seguridad
             async function cargarDatosDesdeSheets() {
-                // Este puente convierte tu Google Sheet en un JSON directo, libre de bloqueos de CORS
-                const url = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${encodeURIComponent(SHEET_NAME)}`;
-                
                 try {
-                    const respuesta = await fetch(url);
-                    if (!respuesta.ok) throw new Error("Error en la respuesta del servidor puente");
+                    const respuesta = await fetch(API_WEB_URL);
+                    if (!respuesta.ok) throw new Error("Error en el servidor de Apps Script");
                     
                     const datosJson = await respuesta.json();
                     
-                    // Mapeamos los datos basándonos en los nombres exactos de tus columnas de Google Sheets
-                    // NOTA: Si en tu excel las columnas se llaman diferente (ej: "Código" en lugar de "codCali"),
-                    // cámbialo abajo entre los corchetes p['Nombre_Exacto']
                     productos = datosJson.map(p => {
-                        // Detectamos las claves del JSON dinámicamente buscando coincidencias aproximadas
-                        const claves = Object.keys(p);
-                        const colCod = claves.find(k => k.toLowerCase().includes('cod')) || claves[0];
-                        const colOtros = claves.find(k => k.toLowerCase().includes('otro')) || claves[1];
-                        const colDesc = claves.find(k => k.toLowerCase().includes('desc')) || claves[2];
-                        const colMarca = claves.find(k => k.toLowerCase().includes('marca')) || claves[3];
-                        const colPrecio = claves.find(k => k.toLowerCase().includes('unitario') || k.toLowerCase().includes('precio') || k.toLowerCase().includes('punit')) || claves[4];
-                        const colImg = claves.find(k => k.toLowerCase().includes('img') || k.toLowerCase().includes('imagen') || k.toLowerCase().includes('foto')) || claves[5];
-
                         return {
-                            codCali: p[colCod] ? String(p[colCod]).trim() : '---',
-                            otrosCod: p[colOtros] ? String(p[colOtros]).trim() : '',
-                            desc: p[colDesc] ? String(p[colDesc]).trim() : 'SIN DESCRIPCIÓN',
-                            marca: p[colMarca] ? String(p[colMarca]).toUpperCase().trim() : 'SIN MARCA',
-                            pUnitario: p[colPrecio] ? Number(String(p[colPrecio]).replace(/[^0-9.-]+/g,"")) : 0,
-                            img: p[colImg] ? String(p[colImg]).trim() : ''
+                            codCali: p.codCali ? String(p.codCali).trim() : '---',
+                            otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
+                            desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
+                            marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
+                            pUnitario: Number(p.pUnitario) || 0,
+                            img: p.img ? String(p.img).trim() : ''
                         };
                     });
 
-                    // Si logró procesar productos, renderizar de inmediato
                     filtrar();
                     
                 } catch (error) {
-                    console.error("Error cargando los datos a través del puente JSON:", error);
+                    console.error("Error cargando los datos:", error);
                     document.getElementById("listaProductos").innerHTML = `
                         <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                            Error de conexión de seguridad. Por favor, asegúrate de que el documento de Google Sheets tenga activado el botón azul <b>Compartir > Cualquier persona con el enlace (Lector)</b>.
+                            Error al enlazar con tu inventario de Google Sheets. Asegúrate de haber completado la autorización en el Apps Script.
                         </div>`;
                 }
             }
@@ -263,7 +245,7 @@
             }
 
             function abrirImagen(url) {
-                if(!url || url.includes('placeholder')) return;
+                if(!url || url.includes('placeholder') || !url.startsWith('http')) return;
                 document.getElementById("modalImg").src = url;
                 document.getElementById("imageModal").style.display = "flex";
             }
@@ -340,7 +322,6 @@
                 document.getElementById("productCount").innerText = `Mostrando ${data.length} de ${productos.length} productos`;
             }
 
-            // Filtrado en tiempo real
             function filtrar() {
                 const q = document.getElementById("searchInput").value.toLowerCase();
                 const productosFiltrados = productos.filter(p => {
