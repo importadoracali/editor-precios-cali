@@ -15,17 +15,14 @@
                 --black-card: #12141c;
                 --white-pure: #ffffff;
                 --gold-bright: #ffcc00;
+                --neon-cyan: #00f3ff;
                 --gray-text: #94a3b8;
                 --gray-border: #222533;
                 --lion-orange: #ff6a00;
                 --zhejiang-blue: #005eff;
             }
 
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
 
             body {
                 font-family: "Montserrat", sans-serif;
@@ -40,7 +37,6 @@
                 text-align: center;
                 background: linear-gradient(180deg, #12141c 0%, var(--black-deep) 100%);
                 border-bottom: 4px solid var(--red-electric);
-                position: relative;
             }
             
             header h1 {
@@ -55,260 +51,121 @@
             }
 
             header .subtitle {
-                color: var(--red-electric);
-                font-size: 0.9rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 4px;
-                font-family: "Roboto Mono", monospace;
+                color: var(--red-electric); font-size: 0.9rem; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 4px; font-family: "Roboto Mono", monospace;
             }
 
             .controls-wrapper {
-                max-width: 1100px;
-                margin: 30px auto 20px;
-                padding: 0 20px;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
+                max-width: 1100px; margin: 30px auto 20px; padding: 0 20px;
+                display: flex; flex-direction: column; gap: 15px;
             }
 
             .search-box {
-                background: var(--black-card);
-                border: 1px solid var(--gray-border);
-                border-left: 4px solid var(--red-electric);
-                display: flex;
-                align-items: center;
-                padding: 14px 20px;
-                border-radius: 4px;
-                transition: border-color 0.3s;
+                background: var(--black-card); border: 1px solid var(--gray-border);
+                border-left: 4px solid var(--red-electric); display: flex; align-items: center;
+                padding: 14px 20px; border-radius: 4px; transition: border-color 0.3s;
             }
-            
-            .search-box:focus-within {
-                border-color: var(--gray-text);
-            }
+            .search-box:focus-within { border-color: var(--gray-text); }
 
             #searchInput {
-                flex: 1;
-                background: transparent;
-                border: none;
-                color: white;
-                font-size: 1.1rem;
-                font-family: "Montserrat", sans-serif;
-                font-weight: 600;
-                outline: none;
-                text-transform: uppercase;
+                flex: 1; background: transparent; border: none; color: white;
+                font-size: 1.1rem; font-family: "Montserrat", sans-serif; font-weight: 600;
+                outline: none; text-transform: uppercase;
             }
+            #searchInput::placeholder { color: #4b5563; font-weight: 400; }
 
-            #searchInput::placeholder {
-                color: #4b5563;
-                font-weight: 400;
-            }
-
-            .filter-tags { 
-                display: flex; 
-                gap: 8px; 
-                flex-wrap: wrap; 
-            }
-
+            .filter-tags { display: flex; gap: 8px; flex-wrap: wrap; }
             .btn-filter {
-                background: var(--black-card); 
-                border: 1px solid var(--gray-border); 
-                color: var(--gray-text);
-                padding: 8px 18px; 
-                font-family: "Montserrat", sans-serif;
-                font-size: 0.85rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                border-radius: 4px;
-                cursor: pointer; 
-                transition: all 0.2s;
+                background: var(--black-card); border: 1px solid var(--gray-border); color: var(--gray-text);
+                padding: 8px 18px; font-family: "Montserrat", sans-serif; font-size: 0.85rem;
+                font-weight: 700; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: all 0.2s;
             }
-
-            .btn-filter:hover, .btn-filter.active { 
-                background: var(--white-pure); 
-                color: var(--black-deep);
-                border-color: var(--white-pure);
-            }
-
+            .btn-filter:hover, .btn-filter.active { background: var(--white-pure); color: var(--black-deep); border-color: var(--white-pure); }
             .btn-filter.btn-lion:hover, .btn-filter.btn-lion.active { background: var(--lion-orange); color: #000; border-color: var(--lion-orange); }
             .btn-filter.btn-zhejiang:hover, .btn-filter.btn-zhejiang.active { background: var(--zhejiang-blue); color: #fff; border-color: var(--zhejiang-blue); }
 
-            /* Diseño de Lista Premium */
-            .list-wrapper {
-                max-width: 1100px;
-                margin: 0 auto;
-                padding: 0 20px;
-            }
-
+            .list-wrapper { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
             .list-header {
-                display: grid;
-                grid-template-columns: 160px 1fr 140px 180px;
-                padding: 15px 20px;
-                background: #161925;
-                border-radius: 6px 6px 0 0;
-                border-bottom: 2px solid var(--gray-border);
-                font-size: 0.8rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: var(--gray-text);
+                display: grid; grid-template-columns: 160px 1fr 140px 180px; padding: 15px 20px;
+                background: #161925; border-radius: 6px 6px 0 0; border-bottom: 2px solid var(--gray-border);
+                font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-text);
             }
-
-            @media (max-width: 768px) {
-                .list-header { display: none; }
-            }
+            @media (max-width: 768px) { .list-header { display: none; } }
 
             .list-container {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                background: var(--gray-border);
-                border-radius: 0 0 6px 6px;
-                overflow: hidden;
+                display: flex; flex-direction: column; gap: 2px;
+                background: var(--gray-border); border-radius: 0 0 6px 6px; overflow: hidden;
             }
 
             .list-item {
-                display: grid;
-                grid-template-columns: 160px 1fr 140px 180px;
-                align-items: center;
-                padding: 18px 20px;
-                background: var(--black-card);
-                transition: background 0.2s;
+                display: grid; grid-template-columns: 160px 1fr 140px 180px; align-items: center;
+                padding: 18px 20px; background: var(--black-card); transition: background 0.2s;
             }
-
-            .list-item:hover {
-                background: #181b26;
-            }
+            .list-item:hover { background: #181b26; }
 
             .col-code {
                 font-family: "Roboto Mono", monospace;
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: var(--white-pure);
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: var(--lion-orange);
+                text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
             }
 
-            .col-desc {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                padding-right: 15px;
+            .col-desc { display: flex; flex-direction: column; gap: 4px; padding-right: 15px; }
+            
+            .title-row { display: flex; align-items: center; gap: 10px; }
+            .product-title { font-size: 0.95rem; font-weight: 700; color: var(--white-pure); text-transform: uppercase; }
+            
+            .btn-img {
+                background: rgba(255, 255, 255, 0.05); border: 1px solid var(--gray-border);
+                color: var(--gray-text); padding: 5px 8px; border-radius: 4px;
+                cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;
             }
+            .btn-img:hover { color: var(--white-pure); border-color: var(--red-electric); background: var(--red-electric); }
 
-            .product-title {
-                font-size: 0.95rem;
-                font-weight: 700;
-                color: var(--white-pure);
-                text-transform: uppercase;
-            }
+            .product-subcodes { font-family: "Roboto Mono", monospace; font-size: 0.75rem; color: var(--gray-text); }
 
-            .product-subcodes {
-                font-family: "Roboto Mono", monospace;
-                font-size: 0.75rem;
-                color: var(--gray-text);
-            }
-
-            .col-brand {
-                display: flex;
-                align-items: center;
-            }
-
+            .col-brand { display: flex; align-items: center; }
             .brand-badge {
-                display: inline-block;
-                padding: 4px 10px;
-                font-size: 0.75rem;
-                font-weight: 700;
-                border-radius: 4px;
-                background: #222533;
-                color: var(--white-pure);
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                display: inline-block; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;
+                border-radius: 4px; background: #222533; color: var(--white-pure); text-transform: uppercase; letter-spacing: 0.5px;
             }
-
             .brand-badge.lionpower { background: rgba(255, 106, 0, 0.15); color: var(--lion-orange); border: 1px solid rgba(255, 106, 0, 0.3); }
             .brand-badge.zhejiang { background: rgba(0, 94, 255, 0.15); color: var(--zhejiang-blue); border: 1px solid rgba(0, 94, 255, 0.3); }
             .brand-badge.breiter { background: rgba(255, 30, 30, 0.15); color: var(--red-electric); border: 1px solid rgba(255, 30, 30, 0.3); }
             .brand-badge.brasil { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+            .brand-badge.oujun { background: rgba(0, 243, 255, 0.15); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.3); }
 
-            .col-price {
-                text-align: right;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+            .col-price { text-align: right; display: flex; flex-direction: column; justify-content: center; }
+            .price-main { font-family: "Roboto Mono", monospace; font-size: 1.25rem; font-weight: 700; color: var(--gold-bright); }
+            .price-fact { font-size: 0.75rem; color: var(--gray-text); font-weight: 600; margin-top: 2px; }
+
+            #imageModal {
+                display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+                z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px);
             }
+            #imageModal img { max-width: 90%; max-height: 80vh; border: 4px solid var(--gray-border); border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+            .close-btn { position: absolute; top: 20px; right: 30px; font-size: 2.5rem; color: white; cursor: pointer; transition: 0.2s; }
+            .close-btn:hover { color: var(--red-electric); }
 
-            .price-main {
-                font-family: "Roboto Mono", monospace;
-                font-size: 1.25rem;
-                font-weight: 700;
-                color: var(--gold-bright);
-            }
-
-            .price-fact {
-                font-size: 0.75rem;
-                color: var(--gray-text);
-                font-weight: 600;
-                margin-top: 2px;
-            }
-
-            /* Responsive para Móviles (Diseño de Fila Compacta) */
             @media (max-width: 768px) {
-                .list-item {
-                    grid-template-columns: 1fr;
-                    gap: 12px;
-                    padding: 16px;
-                    border-bottom: 1px solid var(--gray-border);
-                }
-
-                .list-item-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                }
-
-                .col-code {
-                    font-size: 1.1rem;
-                }
-
-                .col-price {
-                    text-align: right;
-                }
-
-                .price-main {
-                    font-size: 1.15rem;
-                }
-
-                .col-brand {
-                    margin-top: 2px;
-                }
+                .list-item { grid-template-columns: 1fr; gap: 12px; padding: 16px; border-bottom: 1px solid var(--gray-border); }
+                .list-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+                .col-code { font-size: 1.2rem; }
+                .col-price { text-align: right; }
+                .price-main { font-size: 1.15rem; }
+                .col-brand { margin-top: 2px; }
             }
 
-            /* Contador o estado de red */
-            .catalog-footer {
-                max-width: 1100px;
-                margin: 20px auto;
-                padding: 0 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-size: 0.8rem;
-                color: var(--gray-text);
-                font-family: "Roboto Mono", monospace;
-            }
-
-            .status-offline {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: #22c55e;
-                font-weight: 700;
-            }
+            .catalog-footer { max-width: 1100px; margin: 20px auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--gray-text); font-family: "Roboto Mono", monospace; }
+            .status-offline { display: flex; align-items: center; gap: 6px; color: #22c55e; font-weight: 700; }
         </style>
     </head>
     <body>
 
         <header>
             <h1>IMPORTADORA CALI</h1>
-            <div class="subtitle">Catálogo Digital Activo</div>
+            <div class="subtitle">LISTA DE PRECIOS Y EXISTENCIAS</div>
         </header>
 
         <div class="controls-wrapper">
@@ -319,10 +176,8 @@
 
             <div class="filter-tags" id="filterTags">
                 <button class="btn-filter active" onclick="cambiarFiltro(this, '')">Todos</button>
-                <button class="btn-filter btn-lion" onclick="cambiarFiltro(this, 'LIONPOWER')">Lionpower</button>
-                <button class="btn-filter btn-zhejiang" onclick="cambiarFiltro(this, 'ZHEJIANG')">Zhejiang</button>
-                <button class="btn-filter" onclick="cambiarFiltro(this, 'BREITER')">Breiter</button>
-                <button class="btn-filter" onclick="cambiarFiltro(this, 'BRASIL')">Brasil</button>
+                <button class="btn-filter btn-lion" onclick="cambiarFiltro(this, 'LIONPOWER')">Lionpower(nuevo)</button>
+                <button class="btn-filter btn-zhejiang" onclick="cambiarFiltro(this, 'ZHEJIANG')">Zhejiang(nuevo)</button>
             </div>
         </div>
 
@@ -333,45 +188,106 @@
                 <div>Marca</div>
                 <div style="text-align: right;">Precio</div>
             </div>
-            
-            <div class="list-container" id="listaProductos"></div>
+            <div class="list-container" id="listaProductos">
+                <div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">Cargando catálogo desde Google Sheets...</div>
+            </div>
         </div>
 
         <div class="catalog-footer">
             <div id="productCount">Mostrando 0 productos</div>
-            <div class="status-offline">
-                <i class="fa-solid fa-circle-check"></i> Listo para usar sin internet
-            </div>
+            <div class="status-offline"><i class="fa-solid fa-circle-check"></i> Conectado a Google Sheets</div>
+        </div>
+
+        <div id="imageModal" onclick="cerrarImagen(event)">
+            <span class="close-btn" onclick="cerrarImagen(event)">&times;</span>
+            <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
 
         <script>
-            // Base de datos limpia y simplificada
-            const productos = [
-                { codCali: "B4913-C", otrosCod: "W01-M58-8098 / 4913N P02 / 1R14-753", desc: "GLOBO TRACTOR SCANIA", marca: "BREITER", pUnitario: 1250.0 },
-                { codCali: "E3110", otrosCod: "3110 / 1152 / SP558829 / 1K8829CY / 9648", desc: "GLOBO TRACTO AMERICANO HOLLA PLASTICO", marca: "BRASIL", pUnitario: 1070.0 },
-                { codCali: "RES 02", otrosCod: "RES 02", desc: "RESORTE CHATA GRANDE", marca: "", pUnitario: 0.0 },
-                { codCali: "RES 01", otrosCod: "RES 01", desc: "RESORTE CHATA CHICO", marca: "", pUnitario: 0.0 },
-                { codCali: "S 010", otrosCod: "S 010", desc: "RETÉN DE CHATA", marca: "", pUnitario: 0.0 },
-                { codCali: "BR 3005", otrosCod: "BR 3005", desc: "GOMA MANO DE AMIGO DOBLE LABIO", marca: "", pUnitario: 0.0 }
-            ];
-
+            // ⚠️ REMPLAZA ESTE ID CON EL ID DE TU GOOGLE SHEETS
+   // ✅ Configuración corregida según tu captura de pantalla
+const SPREADSHEET_ID = '1KBdQGFX6r2z58biPRi56Wrmq-O6mgQbB3XrORhUoHyo';
+const SHEET_NAME = 'Hoja1'; // Sin espacio, tal como aparece abajo a la izquierda en tu Sheets
+            
+            let productos = [];
             let filtroMarcaActual = "";
 
+            // Función para traer y procesar los datos de Google Sheets
+           // Función alternativa por CSV (Evita errores de permisos y bloqueos del navegador)
+async function cargarDatosDesdeSheets() {
+    // Esta URL le pide a Google directamente la tabla limpia en formato de texto plano (CSV)
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    
+    try {
+        const respuesta = await fetch(url);
+        if (!respuesta.ok) throw new Error("No se pudo conectar con el archivo");
+        
+        const textoText = await respuesta.text();
+        
+        // Procesamos las filas del CSV manualmente
+        const lineas = textoText.split(/\r?\n/);
+        
+        // Limpiamos comillas dobles que agrega Google Sheets al exportar texto
+        const limpiar = (texto) => {
+            if (!texto) return '';
+            // Quita las comillas iniciales y finales que pone el formato CSV
+            return texto.replace(/^"|"$/g, '').trim();
+        };
+
+        productos = [];
+
+        // Empezamos en la línea 1 para saltarnos los encabezados (Código, Descripción, etc.)
+        for (let i = 1; i < lineas.length; i++) {
+            if (!lineas[i]) continue;
+            
+            // Dividir la línea por comas, considerando que los textos pueden llevar comas adentro
+            const columnas = lineas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lineas[i].split(',');
+            
+            if (columnas.length >= 5) {
+                productos.push({
+                    codCali: limpiar(columnas[0]),
+                    otrosCod: limpiar(columnas[1]),
+                    desc: limpiar(columnas[2]),
+                    marca: limpiar(columnas[3]).toUpperCase(),
+                    pUnitario: Number(limpiar(columnas[4])) || 0,
+                    img: columnas[5] ? limpiar(columnas[5]) : ''
+                });
+            }
+        }
+
+        // Renderizar los productos cargados exitosamente
+        filtrar();
+        
+    } catch (error) {
+        console.error("Error cargando los datos de Google Sheets:", error);
+        document.getElementById("listaProductos").innerHTML = `
+            <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                Error al cargar los datos. Asegúrate de haber ido a <b>Archivo > Compartir > Publicar en la web</b> dentro de tu Google Sheets.
+            </div>`;
+    }
+}
             function obtenerClaseMarca(marca) {
                 if (!marca) return "";
-                return marca.toLowerCase();
+                return marca.toLowerCase().replace(/\s+/g, '');
+            }
+
+            function abrirImagen(url) {
+                document.getElementById("modalImg").src = url;
+                document.getElementById("imageModal").style.display = "flex";
+            }
+
+            function cerrarImagen(e) {
+                document.getElementById("imageModal").style.display = "none";
             }
 
             function render(data) {
                 const container = document.getElementById("listaProductos");
-                
                 if (data.length === 0) {
                     container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">No se encontraron productos coincidentes.</div>`;
                     document.getElementById("productCount").innerText = "Mostrando 0 productos";
                     return;
                 }
 
-                // Detectar si es pantalla móvil para adaptar el DOM interno de manera limpia
                 const esMovil = window.innerWidth <= 768;
 
                 container.innerHTML = data.map(p => {
@@ -380,6 +296,7 @@
                     const marcaLabel = p.marca || "SIN MARCA";
                     const marcaClase = obtenerClaseMarca(p.marca);
                     const searchString = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod || ''}`.toLowerCase();
+                    const imgPlaceholder = p.img || "https://via.placeholder.com/400x300?text=Sin+Imagen";
 
                     if (esMovil) {
                         return `
@@ -392,7 +309,10 @@
                                 </div>
                             </div>
                             <div class="col-desc">
-                                <span class="product-title">${p.desc}</span>
+                                <div class="title-row">
+                                    <span class="product-title">${p.desc}</span>
+                                    <button class="btn-img" onclick="abrirImagen('${imgPlaceholder}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>
+                                </div>
                                 <span class="product-subcodes">${p.otrosCod || "---"}</span>
                             </div>
                             <div class="col-brand">
@@ -404,7 +324,10 @@
                         <div class="list-item" data-search="${searchString}" data-marca="${p.marca}">
                             <div class="col-code">${p.codCali}</div>
                             <div class="col-desc">
-                                <span class="product-title">${p.desc}</span>
+                                <div class="title-row">
+                                    <span class="product-title">${p.desc}</span>
+                                    <button class="btn-img" onclick="abrirImagen('${imgPlaceholder}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>
+                                </div>
                                 <span class="product-subcodes">${p.otrosCod || "---"}</span>
                             </div>
                             <div class="col-brand">
@@ -423,28 +346,22 @@
 
             function filtrar() {
                 const q = document.getElementById("searchInput").value.toLowerCase();
-                
                 const productosFiltrados = productos.filter(p => {
                     const searchString = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod || ''}`.toLowerCase();
                     const coincideTexto = searchString.includes(q);
                     const coincideMarca = filtroMarcaActual === "" || p.marca === filtroMarcaActual;
                     return coincideTexto && coincideMarca;
                 });
-
                 render(productosFiltrados);
             }
 
             function cambiarFiltro(btn, marca) {
-                // Quitar clase activa a todos
                 document.querySelectorAll(".btn-filter").forEach(b => b.classList.remove("active"));
-                // Agregar clase activa al botón actual
                 btn.classList.add("active");
-                
                 filtroMarcaActual = marca;
                 filtrar();
             }
 
-            // Escuchar cambios de tamaño de pantalla para re-renderizar responsivamente
             let lastWidth = window.innerWidth;
             window.addEventListener('resize', () => {
                 if ((window.innerWidth <= 768 && lastWidth > 768) || (window.innerWidth > 768 && lastWidth <= 768)) {
@@ -453,16 +370,8 @@
                 }
             });
 
-            window.onload = () => render(productos);
-
-            // Registro del Service Worker para Offline
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(reg => console.log('Service Worker activo.', reg.scope))
-                        .catch(err => console.error('Error de SW:', err));
-                });
-            }
+            // Al cargar la página ejecutamos la petición al Sheets
+            window.onload = () => cargarDatosDesdeSheets();
         </script>
     </body>
 </html>
