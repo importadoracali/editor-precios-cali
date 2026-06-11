@@ -210,34 +210,69 @@
             let productos = [];
             let filtroMarcaActual = "";
 
-            async function cargarDatosDesdeSheets() {
-                try {
-                    const respuesta = await fetch(API_WEB_URL);
-                    if (!respuesta.ok) throw new Error("Error en el servidor de Apps Script");
-                    
-                    const datosJson = await respuesta.json();
-                    
-                    productos = datosJson.map(p => {
-                        return {
-                            codCali: p.codCali ? String(p.codCali).trim() : '---',
-                            otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
-                            desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
-                            marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
-                            pUnitario: Number(p.pUnitario) || 0,
-                            img: p.img ? String(p.img).trim() : ''
-                        };
-                    });
+           async function cargarDatosDesdeSheets() {
+    try {
+        // Añadimos el parámetro para permitir la redirección nativa de Google
+        const respuesta = await fetch(API_WEB_URL, {
+            method: 'GET',
+            mode: 'cors',
+            redirect: 'follow' // Esto obliga al navegador a seguir la redirección de Google
+        });
+        
+        if (!respuesta.ok) throw new Error("Error en el servidor de Apps Script");
+        
+        const datosJson = await respuesta.json();
+        
+        productos = datosJson.map(p => {
+            return {
+                codCali: p.codCali ? String(p.codCali).trim() : '---',
+                otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
+                desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
+                marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
+                pUnitario: Number(p.pUnitario) || 0,
+                img: p.img ? String(p.img).trim() : ''
+            };
+        });
 
-                    filtrar();
-                    
-                } catch (error) {
-                    console.error("Error cargando los datos:", error);
-                    document.getElementById("listaProductos").innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                            Error al enlazar con tu inventario de Google Sheets. Asegúrate de haber completado la autorización en el Apps Script.
-                        </div>`;
-                }
-            }
+        filtrar();
+        
+    } catch (error) {
+        console.error("Error cargando los datos:", error);
+        document.getElementById("listaProductos").innerHTML = `
+            <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                Error al enlazar con tu inventario de Google Sheets. Intentando reconectar de forma alternativa...
+            </div>`;
+        
+        // Si el fetch normal falla por CORS, disparamos automáticamente el Plan B (JSONP)
+        cargarDatosPlanB_JSONP();
+    }
+}
+            // Plan B: Ejecuta una llamada tipo script para saltarse el CORS al 100%
+function cargarDatosPlanB_JSONP() {
+    const script = document.createElement('script');
+    // Le decimos a Google que ejecute la función 'recibirDatosJSONP' cuando termine
+    script.src = API_WEB_URL + '?callback=recibirDatosJSONP';
+    document.body.appendChild(script);
+}
+
+// Esta función recibe los datos del Plan B de forma segura
+function recibirDatosJSONP(datosJson) {
+    try {
+        productos = datosJson.map(p => {
+            return {
+                codCali: p.codCali ? String(p.codCali).trim() : '---',
+                otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
+                desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
+                marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
+                pUnitario: Number(p.pUnitario) || 0,
+                img: p.img ? String(p.img).trim() : ''
+            };
+        });
+        filtrar();
+    } catch (e) {
+        console.error("Error en Plan B:", e);
+    }
+}
 
             function obtenerClaseMarca(marca) {
                 if (!marca) return "";
