@@ -203,75 +203,86 @@
             <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
 
-        <script>
-            // ⚠️ REMPLAZA ESTE ID CON EL ID DE TU GOOGLE SHEETS
-   // ✅ Configuración corregida según tu captura de pantalla
-const SPREADSHEET_ID = '1KBdQGFX6r2z58biPRi56Wrmq-O6mgQbB3XrORhUoHyo';
-const SHEET_NAME = 'Hoja1'; // Sin espacio, tal como aparece abajo a la izquierda en tu Sheets
+  <script>
+            // ✅ Configuración verificada
+            const SPREADSHEET_ID = '1KBdQGFX6r2z58biPRi56Wrmq-O6mgQbB3XrORhUoHyo';
+            const SHEET_NAME = 'Hoja1'; 
             
             let productos = [];
             let filtroMarcaActual = "";
 
-            // Función para traer y procesar los datos de Google Sheets
-           // Función alternativa por CSV (Evita errores de permisos y bloqueos del navegador)
-async function cargarDatosDesdeSheets() {
-    // Esta URL le pide a Google directamente la tabla limpia en formato de texto plano (CSV)
-    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-    
-    try {
-        const respuesta = await fetch(url);
-        if (!respuesta.ok) throw new Error("No se pudo conectar con el archivo");
-        
-        const textoText = await respuesta.text();
-        
-        // Procesamos las filas del CSV manualmente
-        const lineas = textoText.split(/\r?\n/);
-        
-        // Limpiamos comillas dobles que agrega Google Sheets al exportar texto
-        const limpiar = (texto) => {
-            if (!texto) return '';
-            // Quita las comillas iniciales y finales que pone el formato CSV
-            return texto.replace(/^"|"$/g, '').trim();
-        };
+            // Función ultra-robusta de exportación nativa de Google Drive
+            async function cargarDatosDesdeSheets() {
+                // Usamos el endpoint nativo de exportación CSV de Google Drive, que es el más estable y seguro
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+                
+                try {
+                    const respuesta = await fetch(url);
+                    if (!respuesta.ok) throw new Error("No se pudo obtener el archivo de Google");
+                    
+                    const textoCompleto = await respuesta.text();
+                    
+                    // Separar por líneas del documento
+                    const lineas = textoCompleto.split(/\r?\n/);
+                    productos = [];
 
-        productos = [];
+                    // Empezamos en i = 1 para omitir la fila de títulos de la hoja (A1, B1, etc.)
+                    for (let i = 1; i < lineas.length; i++) {
+                        const linea = lineas[i].trim();
+                        if (!linea) continue;
 
-        // Empezamos en la línea 1 para saltarnos los encabezados (Código, Descripción, etc.)
-        for (let i = 1; i < lineas.length; i++) {
-            if (!lineas[i]) continue;
-            
-            // Dividir la línea por comas, considerando que los textos pueden llevar comas adentro
-            const columnas = lineas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lineas[i].split(',');
-            
-            if (columnas.length >= 5) {
-                productos.push({
-                    codCali: limpiar(columnas[0]),
-                    otrosCod: limpiar(columnas[1]),
-                    desc: limpiar(columnas[2]),
-                    marca: limpiar(columnas[3]).toUpperCase(),
-                    pUnitario: Number(limpiar(columnas[4])) || 0,
-                    img: columnas[5] ? limpiar(columnas[5]) : ''
-                });
+                        // Expresión regular avanzada para separar por comas de forma segura
+                        // Evita romper los textos si una descripción contiene una coma (ej: "W01-M58-8098 / 4913N P02")
+                        const columnas = [];
+                        let dentroDeComillas = false;
+                        let celdaActual = "";
+
+                        for (let j = 0; j < linea.length; j++) {
+                            const caracter = linea[j];
+                            if (caracter === '"') {
+                                dentroDeComillas = !dentroDeComillas; // Cambia el estado si encuentra comillas
+                            } else if (caracter === ',' && !dentroDeComillas) {
+                                columnas.push(celdaActual.trim().replace(/^"|"$/g, ''));
+                                celdaActual = "";
+                            } else {
+                                celdaActual += caracter;
+                            }
+                        }
+                        columnas.push(celdaActual.trim().replace(/^"|"$/g, '')); // Añadir la última columna
+
+                        // Verificamos que tenga la información mínima requerida (Código y Descripción)
+                        if (columnas.length >= 5 && columnas[0] !== "") {
+                            productos.push({
+                                codCali: columnas[0],
+                                otrosCod: columnas[1] || "",
+                                desc: columnas[2] || "SIN DESCRIPCIÓN",
+                                marca: (columnas[3] || "SIN MARCA").toUpperCase(),
+                                pUnitario: Number(columnas[4]) || 0,
+                                img: columnas[5] || ""
+                            });
+                        }
+                    }
+
+                    // Renderizar los productos cargados exitosamente
+                    filtrar();
+                    
+                } catch (error) {
+                    console.error("Error cargando los datos de Google Sheets:", error);
+                    document.getElementById("listaProductos").innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                            Error al enlazar con Google Sheets. Asegúrate de que el documento esté en modo <b>Compartir > Cualquier persona con el enlace (Lector)</b> y que hayas ido a <b>Archivo > Compartir > Publicar en la web</b>.
+                        </div>`;
+                }
             }
-        }
 
-        // Renderizar los productos cargados exitosamente
-        filtrar();
-        
-    } catch (error) {
-        console.error("Error cargando los datos de Google Sheets:", error);
-        document.getElementById("listaProductos").innerHTML = `
-            <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                Error al cargar los datos. Asegúrate de haber ido a <b>Archivo > Compartir > Publicar en la web</b> dentro de tu Google Sheets.
-            </div>`;
-    }
-}
             function obtenerClaseMarca(marca) {
                 if (!marca) return "";
-                return marca.toLowerCase().replace(/\s+/g, '');
+                // Limpia espacios y caracteres extraños para que el CSS reconozca las marcas
+                return marca.toLowerCase().trim().replace(/\s+/g, '');
             }
 
             function abrirImagen(url) {
+                if(!url || url.includes('placeholder')) return;
                 document.getElementById("modalImg").src = url;
                 document.getElementById("imageModal").style.display = "flex";
             }
@@ -298,6 +309,12 @@ async function cargarDatosDesdeSheets() {
                     const searchString = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod || ''}`.toLowerCase();
                     const imgPlaceholder = p.img || "https://via.placeholder.com/400x300?text=Sin+Imagen";
 
+                    // Ocultar o deshabilitar botón de imagen si no tiene link real
+                    const tieneImagen = p.img && p.img.startsWith('http');
+                    const btnHtml = tieneImagen 
+                        ? `<button class="btn-img" onclick="abrirImagen('${p.img}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>`
+                        : `<button class="btn-img" style="opacity: 0.2; cursor: not-allowed;" title="Sin Foto"><i class="fa-solid fa-image-slash"></i></button>`;
+
                     if (esMovil) {
                         return `
                         <div class="list-item" data-search="${searchString}" data-marca="${p.marca}">
@@ -311,7 +328,7 @@ async function cargarDatosDesdeSheets() {
                             <div class="col-desc">
                                 <div class="title-row">
                                     <span class="product-title">${p.desc}</span>
-                                    <button class="btn-img" onclick="abrirImagen('${imgPlaceholder}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>
+                                    ${btnHtml}
                                 </div>
                                 <span class="product-subcodes">${p.otrosCod || "---"}</span>
                             </div>
@@ -326,7 +343,7 @@ async function cargarDatosDesdeSheets() {
                             <div class="col-desc">
                                 <div class="title-row">
                                     <span class="product-title">${p.desc}</span>
-                                    <button class="btn-img" onclick="abrirImagen('${imgPlaceholder}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>
+                                    ${btnHtml}
                                 </div>
                                 <span class="product-subcodes">${p.otrosCod || "---"}</span>
                             </div>
@@ -370,7 +387,7 @@ async function cargarDatosDesdeSheets() {
                 }
             });
 
-            // Al cargar la página ejecutamos la petición al Sheets
+            // Al cargar la página ejecutamos la petición directa
             window.onload = () => cargarDatosDesdeSheets();
         </script>
     </body>
