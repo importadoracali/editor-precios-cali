@@ -204,80 +204,61 @@
         </div>
 
   <script>
-            // ✅ Configuración verificada
+            // ✅ Tu ID verificado de la hoja
             const SPREADSHEET_ID = '1KBdQGFX6r2z58biPRi56Wrmq-O6mgQbB3XrORhUoHyo';
             const SHEET_NAME = 'Hoja1'; 
             
             let productos = [];
             let filtroMarcaActual = "";
 
-            // Función ultra-robusta de exportación nativa de Google Drive
+            // Función utilizando un proxy/puente JSON abierto para saltar bloqueos de seguridad
             async function cargarDatosDesdeSheets() {
-                // Usamos el endpoint nativo de exportación CSV de Google Drive, que es el más estable y seguro
-                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+                // Este puente convierte tu Google Sheet en un JSON directo, libre de bloqueos de CORS
+                const url = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${encodeURIComponent(SHEET_NAME)}`;
                 
                 try {
                     const respuesta = await fetch(url);
-                    if (!respuesta.ok) throw new Error("No se pudo obtener el archivo de Google");
+                    if (!respuesta.ok) throw new Error("Error en la respuesta del servidor puente");
                     
-                    const textoCompleto = await respuesta.text();
+                    const datosJson = await respuesta.json();
                     
-                    // Separar por líneas del documento
-                    const lineas = textoCompleto.split(/\r?\n/);
-                    productos = [];
+                    // Mapeamos los datos basándonos en los nombres exactos de tus columnas de Google Sheets
+                    // NOTA: Si en tu excel las columnas se llaman diferente (ej: "Código" en lugar de "codCali"),
+                    // cámbialo abajo entre los corchetes p['Nombre_Exacto']
+                    productos = datosJson.map(p => {
+                        // Detectamos las claves del JSON dinámicamente buscando coincidencias aproximadas
+                        const claves = Object.keys(p);
+                        const colCod = claves.find(k => k.toLowerCase().includes('cod')) || claves[0];
+                        const colOtros = claves.find(k => k.toLowerCase().includes('otro')) || claves[1];
+                        const colDesc = claves.find(k => k.toLowerCase().includes('desc')) || claves[2];
+                        const colMarca = claves.find(k => k.toLowerCase().includes('marca')) || claves[3];
+                        const colPrecio = claves.find(k => k.toLowerCase().includes('unitario') || k.toLowerCase().includes('precio') || k.toLowerCase().includes('punit')) || claves[4];
+                        const colImg = claves.find(k => k.toLowerCase().includes('img') || k.toLowerCase().includes('imagen') || k.toLowerCase().includes('foto')) || claves[5];
 
-                    // Empezamos en i = 1 para omitir la fila de títulos de la hoja (A1, B1, etc.)
-                    for (let i = 1; i < lineas.length; i++) {
-                        const linea = lineas[i].trim();
-                        if (!linea) continue;
+                        return {
+                            codCali: p[colCod] ? String(p[colCod]).trim() : '---',
+                            otrosCod: p[colOtros] ? String(p[colOtros]).trim() : '',
+                            desc: p[colDesc] ? String(p[colDesc]).trim() : 'SIN DESCRIPCIÓN',
+                            marca: p[colMarca] ? String(p[colMarca]).toUpperCase().trim() : 'SIN MARCA',
+                            pUnitario: p[colPrecio] ? Number(String(p[colPrecio]).replace(/[^0-9.-]+/g,"")) : 0,
+                            img: p[colImg] ? String(p[colImg]).trim() : ''
+                        };
+                    });
 
-                        // Expresión regular avanzada para separar por comas de forma segura
-                        // Evita romper los textos si una descripción contiene una coma (ej: "W01-M58-8098 / 4913N P02")
-                        const columnas = [];
-                        let dentroDeComillas = false;
-                        let celdaActual = "";
-
-                        for (let j = 0; j < linea.length; j++) {
-                            const caracter = linea[j];
-                            if (caracter === '"') {
-                                dentroDeComillas = !dentroDeComillas; // Cambia el estado si encuentra comillas
-                            } else if (caracter === ',' && !dentroDeComillas) {
-                                columnas.push(celdaActual.trim().replace(/^"|"$/g, ''));
-                                celdaActual = "";
-                            } else {
-                                celdaActual += caracter;
-                            }
-                        }
-                        columnas.push(celdaActual.trim().replace(/^"|"$/g, '')); // Añadir la última columna
-
-                        // Verificamos que tenga la información mínima requerida (Código y Descripción)
-                        if (columnas.length >= 5 && columnas[0] !== "") {
-                            productos.push({
-                                codCali: columnas[0],
-                                otrosCod: columnas[1] || "",
-                                desc: columnas[2] || "SIN DESCRIPCIÓN",
-                                marca: (columnas[3] || "SIN MARCA").toUpperCase(),
-                                pUnitario: Number(columnas[4]) || 0,
-                                img: columnas[5] || ""
-                            });
-                        }
-                    }
-
-                    // Renderizar los productos cargados exitosamente
+                    // Si logró procesar productos, renderizar de inmediato
                     filtrar();
                     
                 } catch (error) {
-                    console.error("Error cargando los datos de Google Sheets:", error);
+                    console.error("Error cargando los datos a través del puente JSON:", error);
                     document.getElementById("listaProductos").innerHTML = `
                         <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                            Error al enlazar con Google Sheets. Asegúrate de que el documento esté en modo <b>Compartir > Cualquier persona con el enlace (Lector)</b> y que hayas ido a <b>Archivo > Compartir > Publicar en la web</b>.
+                            Error de conexión de seguridad. Por favor, asegúrate de que el documento de Google Sheets tenga activado el botón azul <b>Compartir > Cualquier persona con el enlace (Lector)</b>.
                         </div>`;
                 }
             }
 
             function obtenerClaseMarca(marca) {
                 if (!marca) return "";
-                // Limpia espacios y caracteres extraños para que el CSS reconozca las marcas
                 return marca.toLowerCase().trim().replace(/\s+/g, '');
             }
 
@@ -307,9 +288,7 @@
                     const marcaLabel = p.marca || "SIN MARCA";
                     const marcaClase = obtenerClaseMarca(p.marca);
                     const searchString = `${p.codCali} ${p.desc} ${p.marca} ${p.otrosCod || ''}`.toLowerCase();
-                    const imgPlaceholder = p.img || "https://via.placeholder.com/400x300?text=Sin+Imagen";
 
-                    // Ocultar o deshabilitar botón de imagen si no tiene link real
                     const tieneImagen = p.img && p.img.startsWith('http');
                     const btnHtml = tieneImagen 
                         ? `<button class="btn-img" onclick="abrirImagen('${p.img}')" title="Ver Foto"><i class="fa-solid fa-image"></i></button>`
@@ -361,6 +340,7 @@
                 document.getElementById("productCount").innerText = `Mostrando ${data.length} de ${productos.length} productos`;
             }
 
+            // Filtrado en tiempo real
             function filtrar() {
                 const q = document.getElementById("searchInput").value.toLowerCase();
                 const productosFiltrados = productos.filter(p => {
@@ -387,7 +367,6 @@
                 }
             });
 
-            // Al cargar la página ejecutamos la petición directa
             window.onload = () => cargarDatosDesdeSheets();
         </script>
     </body>
