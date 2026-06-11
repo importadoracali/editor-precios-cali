@@ -203,76 +203,85 @@
             <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
 
-        <script>
-            // ✅ Tu URL de Google Apps Script vinculada de forma segura
+    <script>
+            // URL de tu Apps Script (Verificada)
             const API_WEB_URL = 'https://script.google.com/macros/s/AKfycbw50sxl6xw-46zQ6BasPDLHltXDi1-AF_RWR2N3rGhkyMlcqTLlymYMgC-DBXi_foM/exec';
             
             let productos = [];
             let filtroMarcaActual = "";
 
-           async function cargarDatosDesdeSheets() {
-    try {
-        // Añadimos el parámetro para permitir la redirección nativa de Google
-        const respuesta = await fetch(API_WEB_URL, {
-            method: 'GET',
-            mode: 'cors',
-            redirect: 'follow' // Esto obliga al navegador a seguir la redirección de Google
-        });
-        
-        if (!respuesta.ok) throw new Error("Error en el servidor de Apps Script");
-        
-        const datosJson = await respuesta.json();
-        
-        productos = datosJson.map(p => {
-            return {
-                codCali: p.codCali ? String(p.codCali).trim() : '---',
-                otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
-                desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
-                marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
-                pUnitario: Number(p.pUnitario) || 0,
-                img: p.img ? String(p.img).trim() : ''
-            };
-        });
+            // Intento de carga principal (JSON)
+            async function cargarDatosDesdeSheets() {
+                try {
+                    const respuesta = await fetch(API_WEB_URL, {
+                        method: 'GET',
+                        redirect: 'follow'
+                    });
+                    
+                    if (!respuesta.ok) throw new Error("Error de respuesta");
+                    
+                    const datosJson = await respuesta.json();
+                    procesarYMostrar(datosJson);
+                    
+                } catch (error) {
+                    console.warn("Conexión normal bloqueada por CORS. Activando Plan B (JSONP)...");
+                    document.getElementById("listaProductos").innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                            Conectando de forma alternativa con Google Sheets...
+                        </div>`;
+                    
+                    // Dispara el Plan B si el navegador bloquea el fetch normal
+                    cargarDatosPlanB_JSONP();
+                }
+            }
 
-        filtrar();
-        
-    } catch (error) {
-        console.error("Error cargando los datos:", error);
-        document.getElementById("listaProductos").innerHTML = `
-            <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
-                Error al enlazar con tu inventario de Google Sheets. Intentando reconectar de forma alternativa...
-            </div>`;
-        
-        // Si el fetch normal falla por CORS, disparamos automáticamente el Plan B (JSONP)
-        cargarDatosPlanB_JSONP();
-    }
-}
-            // Plan B: Ejecuta una llamada tipo script para saltarse el CORS al 100%
-function cargarDatosPlanB_JSONP() {
-    const script = document.createElement('script');
-    // Le decimos a Google que ejecute la función 'recibirDatosJSONP' cuando termine
-    script.src = API_WEB_URL + '?callback=recibirDatosJSONP';
-    document.body.appendChild(script);
-}
+            // Plan B: Llama al script usando una etiqueta dinámica (Evita el bloqueo CORS)
+            function cargarDatosPlanB_JSONP() {
+                // Eliminamos cualquier script viejo de intentos anteriores
+                const scriptViejo = document.getElementById('jsonp-script');
+                if (scriptViejo) scriptViejo.remove();
 
-// Esta función recibe los datos del Plan B de forma segura
-function recibirDatosJSONP(datosJson) {
-    try {
-        productos = datosJson.map(p => {
-            return {
-                codCali: p.codCali ? String(p.codCali).trim() : '---',
-                otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
-                desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
-                marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
-                pUnitario: Number(p.pUnitario) || 0,
-                img: p.img ? String(p.img).trim() : ''
-            };
-        });
-        filtrar();
-    } catch (e) {
-        console.error("Error en Plan B:", e);
-    }
-}
+                const script = document.createElement('script');
+                script.id = 'jsonp-script';
+                script.src = API_WEB_URL + '?callback=recibirDatosJSONP&t=' + new Date().getTime(); // El parámetro 't' evita que el navegador use caché vieja
+                
+                script.onerror = function() {
+                    document.getElementById("listaProductos").innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--red-electric); background: var(--black-card);">
+                            Error crítico de conexión. Asegúrate de haber guardado la macro en Google Sheets como "Nueva versión".
+                        </div>`;
+                };
+                
+                document.body.appendChild(script);
+            }
+
+            // Esta función procesa los datos tanto del método normal como del Plan B
+            function recibirDatosJSONP(datosJson) {
+                procesarYMostrar(datosJson);
+            }
+
+            function procesarYMostrar(datosJson) {
+                if (!datosJson || datosJson.length === 0) {
+                    document.getElementById("listaProductos").innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: var(--gray-text); background: var(--black-card);">
+                            La hoja de cálculo está vacía o no tiene el formato correcto.
+                        </div>`;
+                    return;
+                }
+
+                productos = datosJson.map(p => {
+                    return {
+                        codCali: p.codCali ? String(p.codCali).trim() : '---',
+                        otrosCod: p.otrosCod ? String(p.otrosCod).trim() : '',
+                        desc: p.desc ? String(p.desc).trim() : 'SIN DESCRIPCIÓN',
+                        marca: p.marca ? String(p.marca).toUpperCase().trim() : 'SIN MARCA',
+                        pUnitario: Number(p.pUnitario) || 0,
+                        img: p.img ? String(p.img).trim() : ''
+                    };
+                });
+                
+                filtrar();
+            }
 
             function obtenerClaseMarca(marca) {
                 if (!marca) return "";
