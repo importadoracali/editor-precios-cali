@@ -287,14 +287,22 @@
             <img id="modalImg" src="" onclick="event.stopPropagation()" />
         </div>
 
-        <script>
+
+    <script>
             // URL de tu Apps Script
             const API_WEB_URL = 'https://script.google.com/macros/s/AKfycbw5OsxI6xw-46zQ6BasPDLHItxTDi1-AF_RWR2N3rGhkyMIcqTLlymYMgC-DBXi_foM/exec';
             
             let productos = [];
             let filtroMarcaActual = "";
 
+            // --- SISTEMA DE CONEXIÓN Y RESPALDO ---
             async function cargarDatosDesdeSheets() {
+                // 1. Detectar si el celular/PC está sin internet desde el principio
+                if (!navigator.onLine) {
+                    cargarRespaldoLocal();
+                    return;
+                }
+
                 try {
                     const respuesta = await fetch(API_WEB_URL, {
                         method: 'GET',
@@ -305,35 +313,78 @@
                     if (respuesta.ok) {
                         const datosJson = await respuesta.json();
                         if (datosJson && datosJson.length > 0) {
+                            guardarRespaldoLocal(datosJson); // Guarda los datos en la memoria
                             procesarYMostrar(datosJson);
                             return;
                         }
                     }
-                    throw new Error("Forzando alternativa");
+                    throw new Error("Forzando Plan B");
                     
                 } catch (error) {
-                    const viejoScript = document.getElementById('jsonp-engine');
-                    if (viejoScript) viejoScript.remove();
-
-                    const script = document.createElement('script');
-                    script.id = 'jsonp-engine';
-                    script.src = API_WEB_URL + '?callback=recibirDatos&nocache=' + new Date().getTime();
-                    
-                    script.onerror = function() {
-                        document.getElementById("listaProductos").innerHTML = `
-                            <div style="padding: 60px; text-align: center; color: var(--brand-red);">
-                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
-                                No se pudo establecer conexión con Google Sheets. Si estás offline, revisa tu conexión.
-                            </div>`;
-                    };
-                    document.body.appendChild(script);
+                    ejecutarPlanB_JSONP(); // Si el método normal falla, intentamos el Plan B
                 }
             }
 
+            function ejecutarPlanB_JSONP() {
+                const viejoScript = document.getElementById('jsonp-engine');
+                if (viejoScript) viejoScript.remove();
+
+                const script = document.createElement('script');
+                script.id = 'jsonp-engine';
+                script.src = API_WEB_URL + '?callback=recibirDatos&nocache=' + new Date().getTime();
+                
+                script.onerror = function() {
+                    // Si el Plan B también falla (se cortó el internet a la mitad), cargamos el respaldo
+                    cargarRespaldoLocal();
+                };
+                document.body.appendChild(script);
+            }
+
             function recibirDatos(datosJson) {
+                guardarRespaldoLocal(datosJson); // Guarda los datos
                 procesarYMostrar(datosJson);
             }
 
+            // --- FUNCIONES DE MEMORIA (OFFLINE) ---
+            function guardarRespaldoLocal(datosJson) {
+                // Guarda la lista en el disco duro del celular/PC
+                localStorage.setItem('respaldoInventarioCali', JSON.stringify(datosJson));
+                
+                // Guarda la fecha y hora de la última actualización
+                const fecha = new Date();
+                const horaFormat = fecha.toLocaleDateString() + ' a las ' + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                localStorage.setItem('fechaRespaldoCali', horaFormat);
+
+                // Mostramos estado Online
+                const statusDiv = document.querySelector('.status-online');
+                statusDiv.innerHTML = `<i class="fa-solid fa-cloud-check"></i> Catálogo Actualizado`;
+                statusDiv.style.color = "var(--brand-red)";
+            }
+
+            function cargarRespaldoLocal() {
+                const datosGuardados = localStorage.getItem('respaldoInventarioCali');
+                const fechaGuardada = localStorage.getItem('fechaRespaldoCali');
+
+                if (datosGuardados) {
+                    // Si hay datos guardados, mostramos el estado Offline con advertencia visual
+                    const statusDiv = document.querySelector('.status-online');
+                    statusDiv.innerHTML = `<i class="fa-solid fa-wifi-slash"></i> Offline - Respaldo del ${fechaGuardada}`;
+                    statusDiv.style.color = "#d97706"; // Color naranja elegante para advertir
+                    
+                    procesarYMostrar(JSON.parse(datosGuardados));
+                } else {
+                    // Si no hay internet y NUNCA se ha abierto la página antes
+                    document.getElementById("listaProductos").innerHTML = `
+                        <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+                            <i class="fa-solid fa-wifi-slash" style="font-size: 2.5rem; color: #d97706; margin-bottom: 15px; display: block;"></i>
+                            <b>No hay conexión a internet.</b><br><br>
+                            Aún no hay un respaldo guardado. Conéctate a internet al menos una vez para guardar el catálogo en tu dispositivo.
+                        </div>`;
+                    document.getElementById("productCount").innerText = "Mostrando 0 productos";
+                }
+            }
+
+            // --- PROCESAMIENTO Y VISUALIZACIÓN ---
             function procesarYMostrar(datosJson) {
                 if (!datosJson || datosJson.length === 0) {
                     document.getElementById("listaProductos").innerHTML = `
@@ -390,7 +441,6 @@
 
                     const tieneImagen = p.img && p.img.startsWith('http');
                     
-                    // AQUI SE CREA LA MINIATURA
                     const thumbHtml = tieneImagen 
                         ? `<img src="${p.img}" class="thumb-img" onclick="abrirImagen('${p.img}')" title="Clic para agrandar" loading="lazy">`
                         : `<div class="thumb-placeholder" title="Sin foto disponible"><i class="fa-solid fa-camera-slash"></i></div>`;
@@ -468,9 +518,13 @@
                 }
             });
 
+            // Detectar cambios en la conexión de internet en tiempo real
+            window.addEventListener('online', cargarDatosDesdeSheets);
+            window.addEventListener('offline', cargarRespaldoLocal);
+
             window.onload = () => cargarDatosDesdeSheets();
 
-            // CONEXIÓN CON EL SERVICE WORKER PARA MODO OFFLINE
+            // CONEXIÓN CON EL SERVICE WORKER PARA MODO OFFLINE (Visual)
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('./sw.js')
